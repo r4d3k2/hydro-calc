@@ -1,0 +1,287 @@
+/* ── Design tokens ── */
+:root {
+  --bg:     #f4f6f0;
+  --card:   #ffffff;
+  --green:  #3a6b3a;
+  --ec:     #2e7d32;
+  --ph:     #0277bd;
+  --warn:   #ef6c00;
+  --text:   #1f2a1f;
+  --muted:  #6a7a6a;
+  --border: #cdd7cd;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --r: 12px;
+  --gap: 12px;
+}
+
+/* ── Sticky header ── */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--green);
+  color: #fff;
+  text-align: center;
+  padding: 12px 16px 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+}
+.app-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+.app-header p {
+  font-size: 13px;
+  opacity: 0.82;
+  margin: 2px 0 0;
+}
+
+/* ── Page container ── */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 12px 48px;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-top: var(--gap);
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--green);
+  margin: 0 0 14px;
+}
+
+/* ── Collapsible ── */
+.collapsible {
+  margin-top: var(--gap);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  overflow: hidden;
+}
+.collapsible-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.collapsible-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--green);
+}
+.toggle-arrow {
+  color: var(--muted);
+  font-size: 13px;
+  display: inline-block;
+  transition: transform 200ms ease;
+}
+.toggle-arrow.open {
+  transform: rotate(180deg);
+}
+.collapsible-body {
+  border-top: 1px solid #e6ede6;
+  padding: 14px 16px 18px;
+}
+
+/* ── Form controls ── */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+input[type="number"] {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 18px;
+  color: var(--text);
+  background: #fff;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 200ms, box-shadow 200ms;
+}
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(58,107,58,0.13);
+}
+
+/* ── Preset buttons ── */
+.preset-group {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 16px;
+}
+.preset-btn {
+  flex: 1;
+  min-height: 46px;
+  padding: 8px 4px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1.3;
+  transition: border-color 200ms, color 200ms, background 200ms;
+  -webkit-tap-highlight-color: transparent;
+}
+.preset-btn.active {
+  border-color: var(--green);
+  color: var(--green);
+  background: #eef4ee;
+}
+
+/* ── Custom EC/pH row ── */
+.custom-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.custom-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+/* ── Action buttons ── */
+.btn {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 200ms;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover  { opacity: 0.88; }
+.btn:active { opacity: 0.72; }
+.btn-primary   { background: var(--green); color: #fff; }
+.btn-secondary { background: #e6ede6; color: var(--green); }
+
+/* ── New tank result ── */
+.new-tank-result {
+  margin-top: 0;
+}
+.divider {
+  height: 1px;
+  background: #e6ede6;
+  margin: 14px 0;
+}
+.result-item {
+  margin-bottom: 14px;
+}
+.result-item:last-of-type {
+  margin-bottom: 0;
+}
+.result-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.reminder {
+  font-size: 14px;
+  color: var(--muted);
+  font-style: italic;
+  margin: 14px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Big result number ── */
+.bignum-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+}
+.big-number {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+.big-number.ec { color: var(--ec); }
+.big-number.ph { color: var(--ph); }
+.num-unit {
+  font-size: 16px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+/* ── Result area (below input) ── */
+.result-area {
+  margin-top: 12px;
+}
+
+/* ── Status messages ── */
+.status-ok {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ec);
+  margin: 0;
+}
+.status-warn {
+  font-size: 15px;
+  color: var(--warn);
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Tip box ── */
+.tip-box {
+  background: #fff8f0;
+  border-left: 3px solid var(--warn);
+  border-radius: 0 8px 8px 0;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #c45200;
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+/* ── Calibration ── */
+.calib-intro {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+.calib-tip {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  margin: 14px 0 0;
+  line-height: 1.5;
+}
