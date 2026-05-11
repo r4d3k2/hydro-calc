@@ -98,7 +98,7 @@
     }
 
     .collapse-body.open {
-      max-height: 700px;
+      max-height: 900px;
     }
 
     /* ── Form helpers ── */
@@ -325,6 +325,17 @@
       padding: 8px 0 4px;
     }
 
+    .status-error {
+      font-size: 14px;
+      font-weight: 600;
+      color: #c62828;
+      background: #ffebee;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
     /* ── Tip box ── */
     .tip-box {
       display: none;
@@ -475,6 +486,13 @@
       </div>
 
       <div class="field">
+        <label class="field-label" for="koefBNZym">BN-Zym dávka</label>
+        <p class="field-hint">Kolik ml BN-Zym na 1 L vody</p>
+        <input type="number" id="koefBNZym" step="0.05" min="0.05" max="5" value="0.5" oninput="onKoefChange()">
+        <p class="field-hint" style="margin-top:6px">Oficiální rozsah BioNova: 0,5–1,0 ml/L. Pokud dáváš BN-Zym jen jednorázově (ne při každé zálivce), můžeš jít níž (např. 0,4).</p>
+      </div>
+
+      <div class="field">
         <label class="field-label" for="koefPH">pH koeficient</label>
         <p class="field-hint">O kolik sníží 1 kapka pH- pH v 1 L vody</p>
         <input type="number" id="koefPH" step="0.05" min="0.01" max="10" value="1.125" oninput="onKoefChange()">
@@ -494,12 +512,13 @@
 <script>
   const STORAGE_KEY = 'hydroCalc_v1';
   const DEFAULTS = {
-    preset:   'herbs',
-    targetEC: 1.4,
-    targetPH: 5.8,
-    volumeL:  15,
-    koefEC:   0.75,
-    koefPH:   1.125
+    preset:    'herbs',
+    targetEC:  1.4,
+    targetPH:  5.8,
+    volumeL:   15,
+    koefEC:    0.75,
+    koefPH:    1.125,
+    koefBNZym: 0.5
   };
 
   let s = loadSettings();
@@ -546,9 +565,10 @@
       document.getElementById('customPH').value = s.targetPH;
     }
 
-    document.getElementById('volumeInput').value = s.volumeL;
-    document.getElementById('koefEC').value      = s.koefEC;
-    document.getElementById('koefPH').value      = s.koefPH;
+    document.getElementById('volumeInput').value  = s.volumeL;
+    document.getElementById('koefEC').value       = s.koefEC;
+    document.getElementById('koefBNZym').value    = s.koefBNZym;
+    document.getElementById('koefPH').value       = s.koefPH;
   }
 
   function highlightPreset(preset) {
@@ -594,19 +614,23 @@
   }
 
   function onKoefChange() {
-    var ec = parseFloat(document.getElementById('koefEC').value);
-    var ph = parseFloat(document.getElementById('koefPH').value);
-    if (!isNaN(ec) && ec > 0) s.koefEC = ec;
-    if (!isNaN(ph) && ph > 0) s.koefPH = ph;
+    var ec  = parseFloat(document.getElementById('koefEC').value);
+    var zym = parseFloat(document.getElementById('koefBNZym').value);
+    var ph  = parseFloat(document.getElementById('koefPH').value);
+    if (!isNaN(ec)  && ec  > 0) s.koefEC    = ec;
+    if (!isNaN(zym) && zym > 0) s.koefBNZym = zym;
+    if (!isNaN(ph)  && ph  > 0) s.koefPH    = ph;
     save();
     recalcAll();
   }
 
   function resetDefaults() {
-    s.koefEC = DEFAULTS.koefEC;
-    s.koefPH = DEFAULTS.koefPH;
-    document.getElementById('koefEC').value = s.koefEC;
-    document.getElementById('koefPH').value = s.koefPH;
+    s.koefEC    = DEFAULTS.koefEC;
+    s.koefBNZym = DEFAULTS.koefBNZym;
+    s.koefPH    = DEFAULTS.koefPH;
+    document.getElementById('koefEC').value    = s.koefEC;
+    document.getElementById('koefBNZym').value = s.koefBNZym;
+    document.getElementById('koefPH').value    = s.koefPH;
     save();
     recalcAll();
   }
@@ -614,7 +638,7 @@
   /* ── Section 2: Nová nádrž ── */
   function calcNewTank() {
     var supermix = roundHalf(s.targetEC * s.volumeL / s.koefEC);
-    var zym      = roundHalf(s.volumeL / 10);
+    var zym      = roundHalf(s.volumeL * s.koefBNZym);
 
     document.getElementById('newTankSupermix').textContent = fmt(supermix);
     document.getElementById('newTankZym').textContent      = fmt(zym);
@@ -641,11 +665,14 @@
       tip.classList.remove('visible');
     } else if (diff > 0) {
       var ml = ceilHalf(diff * s.volumeL / s.koefEC);
+      var safetyHtml = (ml / s.volumeL > 2.7)
+        ? '<div class="status-error">⚠️ Vypočtená dávka přesahuje max. doporučené dávkování (2,7 ml/L). Zkontroluj cílové EC nebo kalibraci.</div>'
+        : '';
       output.innerHTML =
         '<div class="big-number-wrap">' +
           '<div class="big-number ec-color">' + fmt(ml) + '</div>' +
           '<div class="big-unit">ml Hydro Supermix</div>' +
-        '</div>';
+        '</div>' + safetyHtml;
       tip.classList.add('visible');
     } else {
       output.innerHTML =
