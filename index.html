@@ -1,13 +1,701 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>hydro-calc</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌱 Hydro kalkulačka</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      background: #f4f6f0;
+      color: #1f2a1f;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #3a6b3a;
+      color: #fff;
+      padding: 14px 16px 13px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    .header h1 {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .header p {
+      font-size: 13px;
+      opacity: 0.78;
+      margin-top: 1px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 12px 12px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #3a6b3a;
+      margin-bottom: 14px;
+    }
+
+    /* ── Collapsible toggle ── */
+    .toggle-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .toggle-header .card-title {
+      margin-bottom: 0;
+    }
+
+    .toggle-arrow {
+      color: #6a7a6a;
+      font-size: 11px;
+      transition: transform 200ms;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .toggle-header.open .toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    .collapse-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 280ms ease;
+    }
+
+    .collapse-body.open {
+      max-height: 700px;
+    }
+
+    /* ── Form helpers ── */
+    .field {
+      margin-top: 14px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 14px;
+      color: #6a7a6a;
+      margin-bottom: 6px;
+    }
+
+    .field-hint {
+      font-size: 13px;
+      color: #6a7a6a;
+      margin-bottom: 6px;
+    }
+
+    input[type="number"] {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 12px;
+      font-size: 18px;
+      color: #1f2a1f;
+      background: #fff;
+      border: 1.5px solid #c8d5c8;
+      border-radius: 8px;
+      transition: border-color 200ms;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #3a6b3a;
+    }
+
+    /* ── Preset buttons ── */
+    .section-label {
+      font-size: 14px;
+      color: #6a7a6a;
+      margin-bottom: 8px;
+      margin-top: 14px;
+      display: block;
+    }
+
+    .preset-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .preset-btn {
+      flex: 1;
+      min-height: 48px;
+      padding: 8px 4px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #fff;
+      color: #3a6b3a;
+      border: 2px solid #c8d5c8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 200ms, border-color 200ms, color 200ms;
+    }
+
+    .preset-btn.active {
+      background: #3a6b3a;
+      border-color: #3a6b3a;
+      color: #fff;
+    }
+
+    .preset-btn:hover:not(.active) {
+      border-color: #3a6b3a;
+      background: #f0f5f0;
+    }
+
+    /* ── Custom target inputs row ── */
+    .custom-row {
+      display: none;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .custom-row.visible {
+      display: flex;
+    }
+
+    .custom-row .field {
+      flex: 1;
+      margin-top: 0;
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      background: #3a6b3a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 200ms;
+    }
+
+    .btn-primary:hover {
+      background: #2d5a2d;
+    }
+
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      color: #6a7a6a;
+      border: 1.5px solid #c8d5c8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 200ms, color 200ms;
+      margin-top: 16px;
+    }
+
+    .btn-secondary:hover {
+      border-color: #3a6b3a;
+      color: #3a6b3a;
+    }
+
+    /* ── New tank result ── */
+    .new-tank-result {
+      display: none;
+      margin-top: 14px;
+      background: #f4f6f0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .result-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+    }
+
+    .result-row + .result-row {
+      border-top: 1px solid #e0e8e0;
+    }
+
+    .result-name {
+      font-size: 15px;
+      color: #6a7a6a;
+    }
+
+    .result-amount {
+      text-align: right;
+    }
+
+    .result-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2e7d32;
+      line-height: 1;
+    }
+
+    .result-unit-small {
+      font-size: 12px;
+      color: #6a7a6a;
+      margin-top: 2px;
+    }
+
+    .reminder-text {
+      padding: 10px 14px 12px;
+      font-size: 13px;
+      font-style: italic;
+      color: #6a7a6a;
+      border-top: 1px solid #e0e8e0;
+      line-height: 1.55;
+    }
+
+    /* ── EC / pH inline results ── */
+    .inline-result {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .big-number-wrap {
+      text-align: center;
+      padding: 8px 0 6px;
+    }
+
+    .big-number {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .big-number.ec-color { color: #2e7d32; }
+    .big-number.ph-color { color: #0277bd; }
+
+    .big-unit {
+      font-size: 15px;
+      color: #6a7a6a;
+      margin-top: 5px;
+    }
+
+    .status-ok {
+      font-size: 17px;
+      font-weight: 600;
+      color: #2e7d32;
+      text-align: center;
+      padding: 10px 0 6px;
+    }
+
+    .status-warn {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ef6c00;
+      padding: 8px 0 4px;
+    }
+
+    /* ── Tip box ── */
+    .tip-box {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #fff8f0;
+      border-left: 3px solid #ef6c00;
+      border-radius: 0 8px 8px 0;
+      font-size: 14px;
+      color: #1f2a1f;
+      line-height: 1.5;
+    }
+
+    .tip-box.visible {
+      display: block;
+    }
+
+    /* ── Calibration helpers ── */
+    .calib-intro {
+      font-size: 14px;
+      color: #6a7a6a;
+      padding-top: 14px;
+    }
+
+    .calib-tip {
+      font-size: 13px;
+      color: #6a7a6a;
+      margin-top: 14px;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Header ── -->
+  <header class="header">
+    <h1>🌱 Hydro kalkulačka</h1>
+    <p>Věž 15 L · BioNova</p>
+  </header>
+
+  <!-- ── Section 1: Settings ── -->
+  <div class="card">
+    <div class="toggle-header" id="settingsToggle">
+      <span class="card-title">⚙️ Nastavení</span>
+      <span class="toggle-arrow">▼</span>
+    </div>
+    <div class="collapse-body" id="settingsBody">
+
+      <span class="section-label">Plodina</span>
+      <div class="preset-group">
+        <button class="preset-btn" id="presetHerbs"   onclick="setPreset('herbs')">🌿 Bylinky</button>
+        <button class="preset-btn" id="presetSalads"  onclick="setPreset('salads')">🥬 Saláty</button>
+        <button class="preset-btn" id="presetCustom"  onclick="setPreset('custom')">✏️ Vlastní</button>
+      </div>
+
+      <div class="custom-row" id="customRow">
+        <div class="field">
+          <label class="field-label" for="customEC">Cílové EC (mS/cm)</label>
+          <input type="number" id="customEC" step="0.1" min="0.1" max="5" placeholder="1.4" oninput="onCustomChange()">
+        </div>
+        <div class="field">
+          <label class="field-label" for="customPH">Cílové pH</label>
+          <input type="number" id="customPH" step="0.1" min="4" max="8" placeholder="5.8" oninput="onCustomChange()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="volumeInput">Objem nádrže (L)</label>
+        <input type="number" id="volumeInput" step="1" min="1" max="1000" value="15" oninput="onVolumeChange()">
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Section 2: Nová nádrž ── -->
+  <div class="card">
+    <div class="card-title">🆕 Nová nádrž</div>
+    <button class="btn-primary" onclick="calcNewTank()">Spočítat dávkování</button>
+
+    <div class="new-tank-result" id="newTankResult">
+      <div class="result-row">
+        <span class="result-name">Hydro Supermix</span>
+        <div class="result-amount">
+          <div class="result-number" id="newTankSupermix">–</div>
+          <div class="result-unit-small">ml</div>
+        </div>
+      </div>
+      <div class="result-row">
+        <span class="result-name">BN-Zym</span>
+        <div class="result-amount">
+          <div class="result-number" id="newTankZym">–</div>
+          <div class="result-unit-small">ml</div>
+        </div>
+      </div>
+      <div class="reminder-text">
+        Nejdřív rozmíchej Hydro Supermix, potom přidej BN-Zym. Po naplnění změř pH a uprav v sekci níže.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 3: Doplnit hnojivo ── -->
+  <div class="card">
+    <div class="card-title">📈 Doplnit hnojivo</div>
+    <div class="field">
+      <label class="field-label" for="measuredEC">Naměřené EC (mS/cm)</label>
+      <input type="number" id="measuredEC" step="0.01" min="0" max="10" placeholder="např. 0.8" oninput="calcEC()">
+    </div>
+
+    <div class="inline-result" id="ecResult">
+      <div id="ecOutput"></div>
+      <div class="tip-box" id="ecTip">
+        💡 Přidej polovinu, počkej 5 minut, znovu změř, dorovni zbytek. Hnojivo se rozmíchává postupně.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4: Snížit pH ── -->
+  <div class="card">
+    <div class="card-title">⬇️ Snížit pH</div>
+    <div class="field">
+      <label class="field-label" for="measuredPH">Naměřené pH</label>
+      <input type="number" id="measuredPH" step="0.1" min="0" max="14" placeholder="např. 7.5" oninput="calcPH()">
+    </div>
+
+    <div class="inline-result" id="phResult">
+      <div id="phOutput"></div>
+      <div class="tip-box" id="phTip">
+        💡 Začni polovinou, počkej 2 minuty, znovu změř. pH reaguje skokově.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section 5: Kalibrace ── -->
+  <div class="card">
+    <div class="toggle-header" id="calibToggle">
+      <span class="card-title">⚙️ Kalibrace</span>
+      <span class="toggle-arrow">▼</span>
+    </div>
+    <div class="collapse-body" id="calibBody">
+
+      <p class="calib-intro">Pokud dávkování v praxi nesedí, uprav si koeficienty:</p>
+
+      <div class="field">
+        <label class="field-label" for="koefEC">EC koeficient</label>
+        <p class="field-hint">O kolik mS/cm zvedne 1 ml hnojiva v 1 L vody</p>
+        <input type="number" id="koefEC" step="0.05" min="0.05" max="10" value="0.75" oninput="onKoefChange()">
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="koefPH">pH koeficient</label>
+        <p class="field-hint">O kolik sníží 1 kapka pH- pH v 1 L vody</p>
+        <input type="number" id="koefPH" step="0.05" min="0.01" max="10" value="1.125" oninput="onKoefChange()">
+      </div>
+
+      <button class="btn-secondary" onclick="resetDefaults()">Reset na defaultní</button>
+
+      <p class="calib-tip">
+        Tip: změř pH/EC před přidáním hnojiva nebo pH-, dodej spočítané množství, znovu změř.
+        Pokud výsledek nesedí, uprav koeficient.
+      </p>
+
+    </div>
+  </div>
+
+</div>
+<script>
+  const STORAGE_KEY = 'hydroCalc_v1';
+  const DEFAULTS = {
+    preset:   'herbs',
+    targetEC: 1.4,
+    targetPH: 5.8,
+    volumeL:  15,
+    koefEC:   0.75,
+    koefPH:   1.125
+  };
+
+  let s = loadSettings();
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return Object.assign({}, DEFAULTS, JSON.parse(raw));
+    } catch (_) {}
+    return Object.assign({}, DEFAULTS);
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  }
+
+  /* Rounding helpers */
+  function ceilHalf(v)  { return Math.ceil(v * 2) / 2; }   // round UP to nearest 0.5
+  function roundHalf(v) { return Math.round(v * 2) / 2; }  // round to nearest 0.5
+
+  function fmt(v) {
+    /* Display a number: drop trailing .0 but keep .5 */
+    return (v % 1 === 0) ? String(v) : v.toFixed(1);
+  }
+
+  /* ── Collapsible sections ── */
+  function initToggle(toggleId, bodyId) {
+    document.getElementById(toggleId).addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById(bodyId).classList.toggle('open');
+    });
+  }
+
+  initToggle('settingsToggle', 'settingsBody');
+  initToggle('calibToggle',    'calibBody');
+
+  /* ── Settings initialisation ── */
+  function initUI() {
+    highlightPreset(s.preset);
+
+    if (s.preset === 'custom') {
+      document.getElementById('customRow').classList.add('visible');
+      document.getElementById('customEC').value = s.targetEC;
+      document.getElementById('customPH').value = s.targetPH;
+    }
+
+    document.getElementById('volumeInput').value = s.volumeL;
+    document.getElementById('koefEC').value      = s.koefEC;
+    document.getElementById('koefPH').value      = s.koefPH;
+  }
+
+  function highlightPreset(preset) {
+    ['herbs','salads','custom'].forEach(function(p) {
+      document.getElementById('preset' + p.charAt(0).toUpperCase() + p.slice(1))
+        .classList.toggle('active', p === preset);
+    });
+  }
+
+  function setPreset(preset) {
+    s.preset = preset;
+    highlightPreset(preset);
+
+    var customRow = document.getElementById('customRow');
+    if (preset === 'herbs') {
+      s.targetEC = 1.4; s.targetPH = 5.8;
+      customRow.classList.remove('visible');
+    } else if (preset === 'salads') {
+      s.targetEC = 1.0; s.targetPH = 5.8;
+      customRow.classList.remove('visible');
+    } else {
+      customRow.classList.add('visible');
+      document.getElementById('customEC').value = s.targetEC;
+      document.getElementById('customPH').value = s.targetPH;
+    }
+
+    save();
+    recalcAll();
+  }
+
+  function onCustomChange() {
+    var ec = parseFloat(document.getElementById('customEC').value);
+    var ph = parseFloat(document.getElementById('customPH').value);
+    if (!isNaN(ec) && ec > 0)            s.targetEC = ec;
+    if (!isNaN(ph) && ph > 0 && ph <= 14) s.targetPH = ph;
+    save();
+    recalcAll();
+  }
+
+  function onVolumeChange() {
+    var v = parseFloat(document.getElementById('volumeInput').value);
+    if (!isNaN(v) && v > 0) { s.volumeL = v; save(); recalcAll(); }
+  }
+
+  function onKoefChange() {
+    var ec = parseFloat(document.getElementById('koefEC').value);
+    var ph = parseFloat(document.getElementById('koefPH').value);
+    if (!isNaN(ec) && ec > 0) s.koefEC = ec;
+    if (!isNaN(ph) && ph > 0) s.koefPH = ph;
+    save();
+    recalcAll();
+  }
+
+  function resetDefaults() {
+    s.koefEC = DEFAULTS.koefEC;
+    s.koefPH = DEFAULTS.koefPH;
+    document.getElementById('koefEC').value = s.koefEC;
+    document.getElementById('koefPH').value = s.koefPH;
+    save();
+    recalcAll();
+  }
+
+  /* ── Section 2: Nová nádrž ── */
+  function calcNewTank() {
+    var supermix = roundHalf(s.targetEC * s.volumeL / s.koefEC);
+    var zym      = roundHalf(s.volumeL / 10);
+
+    document.getElementById('newTankSupermix').textContent = fmt(supermix);
+    document.getElementById('newTankZym').textContent      = fmt(zym);
+    document.getElementById('newTankResult').style.display = 'block';
+  }
+
+  /* ── Section 3: EC doplnění ── */
+  function calcEC() {
+    var raw    = document.getElementById('measuredEC').value;
+    var result = document.getElementById('ecResult');
+    var output = document.getElementById('ecOutput');
+    var tip    = document.getElementById('ecTip');
+
+    if (raw === '') { result.style.display = 'none'; return; }
+
+    var measured = parseFloat(raw);
+    if (isNaN(measured)) { result.style.display = 'none'; return; }
+
+    result.style.display = 'block';
+    var diff = s.targetEC - measured;
+
+    if (Math.abs(diff) <= 0.05) {
+      output.innerHTML = '<div class="status-ok">✅ EC je v pořádku</div>';
+      tip.classList.remove('visible');
+    } else if (diff > 0) {
+      var ml = ceilHalf(diff * s.volumeL / s.koefEC);
+      output.innerHTML =
+        '<div class="big-number-wrap">' +
+          '<div class="big-number ec-color">' + fmt(ml) + '</div>' +
+          '<div class="big-unit">ml Hydro Supermix</div>' +
+        '</div>';
+      tip.classList.add('visible');
+    } else {
+      output.innerHTML =
+        '<div class="status-warn">⚠️ EC je vyšší než cíl. Dolij vodu nebo počkej na přirozený pokles.</div>';
+      tip.classList.remove('visible');
+    }
+  }
+
+  /* ── Section 4: pH snížení ── */
+  function calcPH() {
+    var raw    = document.getElementById('measuredPH').value;
+    var result = document.getElementById('phResult');
+    var output = document.getElementById('phOutput');
+    var tip    = document.getElementById('phTip');
+
+    if (raw === '') { result.style.display = 'none'; return; }
+
+    var measured = parseFloat(raw);
+    if (isNaN(measured)) { result.style.display = 'none'; return; }
+
+    result.style.display = 'block';
+    var diff = measured - s.targetPH;
+
+    if (Math.abs(diff) <= 0.1) {
+      output.innerHTML = '<div class="status-ok">✅ pH je v pořádku</div>';
+      tip.classList.remove('visible');
+    } else if (diff > 0) {
+      var kapky = Math.round(diff * s.volumeL / s.koefPH);
+      output.innerHTML =
+        '<div class="big-number-wrap">' +
+          '<div class="big-number ph-color">' + kapky + '</div>' +
+          '<div class="big-unit">kapek pH-</div>' +
+        '</div>';
+      tip.classList.add('visible');
+    } else {
+      output.innerHTML =
+        '<div class="status-warn">⚠️ pH je nižší než cíl. Nemáš pH+, doporučení: dolij čerstvou vodu (zvedne pH).</div>';
+      tip.classList.remove('visible');
+    }
+  }
+
+  function recalcAll() {
+    calcEC();
+    calcPH();
+    /* New tank result stays hidden until the button is tapped again */
+    document.getElementById('newTankResult').style.display = 'none';
+  }
+
+  /* ── Boot ── */
+  initUI();
+</script>
+</body>
 </html>
