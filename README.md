@@ -24,5 +24,6 @@ uprav koeficienty v sekci **⚙️ Kalibrace**:
 - **EC koeficient** (výchozí 0.75) — o kolik mS/cm zvedne 1 ml hnojiva v 1 L vody
 - **BN-Zym dávka** (výchozí 0.5 ml/L) — kolik ml BN-Zym na 1 L vody (oficiální rozsah BioNova: 0,5–1,0 ml/L)
 - **pH koeficient** (výchozí 1.125) — o kolik sníží 1 kapka pH- pH v 1 L vody
+- **Objem 1 kapky pH-** (výchozí 0.05 ml) — pro převod kapek na ml. Pro přesnou hodnotu nakapej 20 kapek do odměrky a vyděl výsledný objem 20.
 
 Všechna nastavení se ukládají automaticky v prohlížeči (localStorage).

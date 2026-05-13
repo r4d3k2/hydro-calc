@@ -65,6 +65,28 @@
       margin-bottom: 14px;
     }
 
+    .card-target {
+      font-size: 14px;
+      color: #6a7a6a;
+      margin-top: -8px;
+      margin-bottom: 12px;
+    }
+
+    .deviation {
+      font-size: 15px;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .deviation.warn { color: #ef6c00; }
+    .deviation.ok   { color: #2e7d32; }
+
+    .ml-secondary {
+      font-size: 14px;
+      color: #6a7a6a;
+      margin-top: 4px;
+    }
+
     /* ── Collapsible toggle ── */
     .toggle-header {
       display: flex;
@@ -440,6 +462,7 @@
   <!-- ── Section 3: Doplnit hnojivo ── -->
   <div class="card">
     <div class="card-title">📈 Doplnit hnojivo</div>
+    <div class="card-target" id="ecTarget">Cíl: 1,4 mS/cm</div>
     <div class="field">
       <label class="field-label" for="measuredEC">Naměřené EC (mS/cm)</label>
       <input type="number" id="measuredEC" step="0.01" min="0" max="10" placeholder="např. 0.8" oninput="calcEC()">
@@ -456,6 +479,7 @@
   <!-- ── Section 4: Snížit pH ── -->
   <div class="card">
     <div class="card-title">⬇️ Snížit pH</div>
+    <div class="card-target" id="phTarget">Cíl: 5,8</div>
     <div class="field">
       <label class="field-label" for="measuredPH">Naměřené pH</label>
       <input type="number" id="measuredPH" step="0.1" min="0" max="14" placeholder="např. 7.5" oninput="calcPH()">
@@ -498,6 +522,12 @@
         <input type="number" id="koefPH" step="0.05" min="0.01" max="10" value="1.125" oninput="onKoefChange()">
       </div>
 
+      <div class="field">
+        <label class="field-label" for="mlPerDrop">Objem 1 kapky pH- (ml)</label>
+        <input type="number" id="mlPerDrop" step="0.01" min="0.01" max="1" value="0.05" oninput="onKoefChange()">
+        <p class="field-hint" style="margin-top:6px">Standardní kapátko = 0,05 ml. Pokud chceš přesně, nakapej 20 kapek do odměrky a vyděl výsledný objem 20.</p>
+      </div>
+
       <button class="btn-secondary" onclick="resetDefaults()">Reset na defaultní</button>
 
       <p class="calib-tip">
@@ -518,7 +548,8 @@
     volumeL:   15,
     koefEC:    0.75,
     koefPH:    1.125,
-    koefBNZym: 0.5
+    koefBNZym: 0.5,
+    mlPerDrop: 0.05
   };
 
   let s = loadSettings();
@@ -542,6 +573,27 @@
   function fmt(v) {
     /* Display a number: drop trailing .0 but keep .5 */
     return (v % 1 === 0) ? String(v) : v.toFixed(1);
+  }
+
+  function fmtCs(v, decimals) {
+    return Number(v).toFixed(decimals).replace('.', ',');
+  }
+
+  function deviationHtml(diff, unit, tol) {
+    var unitPart = unit ? ' ' + unit : '';
+    if (Math.abs(diff) <= tol) {
+      return '<div class="deviation ok">Odchylka: 0,0' + unitPart + ' (v cíli)</div>';
+    }
+    var sign = diff > 0 ? '+' : '−';
+    var abs  = Math.abs(diff).toFixed(1).replace('.', ',');
+    return '<div class="deviation warn">Odchylka: ' + sign + abs + unitPart + '</div>';
+  }
+
+  function updateTargets() {
+    var ecEl = document.getElementById('ecTarget');
+    var phEl = document.getElementById('phTarget');
+    if (ecEl) ecEl.textContent = 'Cíl: ' + fmtCs(s.targetEC, 1) + ' mS/cm';
+    if (phEl) phEl.textContent = 'Cíl: ' + fmtCs(s.targetPH, 1);
   }
 
   /* ── Collapsible sections ── */
@@ -569,6 +621,9 @@
     document.getElementById('koefEC').value       = s.koefEC;
     document.getElementById('koefBNZym').value    = s.koefBNZym;
     document.getElementById('koefPH').value       = s.koefPH;
+    document.getElementById('mlPerDrop').value    = s.mlPerDrop;
+
+    updateTargets();
   }
 
   function highlightPreset(preset) {
@@ -595,6 +650,7 @@
       document.getElementById('customPH').value = s.targetPH;
     }
 
+    updateTargets();
     save();
     recalcAll();
   }
@@ -604,6 +660,7 @@
     var ph = parseFloat(document.getElementById('customPH').value);
     if (!isNaN(ec) && ec > 0)            s.targetEC = ec;
     if (!isNaN(ph) && ph > 0 && ph <= 14) s.targetPH = ph;
+    updateTargets();
     save();
     recalcAll();
   }
@@ -617,9 +674,11 @@
     var ec  = parseFloat(document.getElementById('koefEC').value);
     var zym = parseFloat(document.getElementById('koefBNZym').value);
     var ph  = parseFloat(document.getElementById('koefPH').value);
+    var mpd = parseFloat(document.getElementById('mlPerDrop').value);
     if (!isNaN(ec)  && ec  > 0) s.koefEC    = ec;
     if (!isNaN(zym) && zym > 0) s.koefBNZym = zym;
     if (!isNaN(ph)  && ph  > 0) s.koefPH    = ph;
+    if (!isNaN(mpd) && mpd > 0) s.mlPerDrop = mpd;
     save();
     recalcAll();
   }
@@ -628,9 +687,11 @@
     s.koefEC    = DEFAULTS.koefEC;
     s.koefBNZym = DEFAULTS.koefBNZym;
     s.koefPH    = DEFAULTS.koefPH;
+    s.mlPerDrop = DEFAULTS.mlPerDrop;
     document.getElementById('koefEC').value    = s.koefEC;
     document.getElementById('koefBNZym').value = s.koefBNZym;
     document.getElementById('koefPH').value    = s.koefPH;
+    document.getElementById('mlPerDrop').value = s.mlPerDrop;
     save();
     recalcAll();
   }
@@ -658,10 +719,12 @@
     if (isNaN(measured)) { result.style.display = 'none'; return; }
 
     result.style.display = 'block';
-    var diff = s.targetEC - measured;
+    var diff      = s.targetEC - measured;
+    var deviation = measured - s.targetEC;
+    var devHtml   = deviationHtml(deviation, 'mS/cm', 0.05);
 
     if (Math.abs(diff) <= 0.05) {
-      output.innerHTML = '<div class="status-ok">✅ EC je v pořádku</div>';
+      output.innerHTML = '<div class="status-ok">✅ EC je v pořádku</div>' + devHtml;
       tip.classList.remove('visible');
     } else if (diff > 0) {
       var ml = ceilHalf(diff * s.volumeL / s.koefEC);
@@ -672,11 +735,11 @@
         '<div class="big-number-wrap">' +
           '<div class="big-number ec-color">' + fmt(ml) + '</div>' +
           '<div class="big-unit">ml Hydro Supermix</div>' +
-        '</div>' + safetyHtml;
+        '</div>' + safetyHtml + devHtml;
       tip.classList.add('visible');
     } else {
       output.innerHTML =
-        '<div class="status-warn">⚠️ EC je vyšší než cíl. Dolij vodu nebo počkej na přirozený pokles.</div>';
+        '<div class="status-warn">⚠️ EC je vyšší než cíl. Dolij vodu nebo počkej na přirozený pokles.</div>' + devHtml;
       tip.classList.remove('visible');
     }
   }
@@ -694,22 +757,26 @@
     if (isNaN(measured)) { result.style.display = 'none'; return; }
 
     result.style.display = 'block';
-    var diff = measured - s.targetPH;
+    var diff    = measured - s.targetPH;
+    var devHtml = deviationHtml(diff, '', 0.1);
 
     if (Math.abs(diff) <= 0.1) {
-      output.innerHTML = '<div class="status-ok">✅ pH je v pořádku</div>';
+      output.innerHTML = '<div class="status-ok">✅ pH je v pořádku</div>' + devHtml;
       tip.classList.remove('visible');
     } else if (diff > 0) {
       var kapky = Math.round(diff * s.volumeL / s.koefPH);
+      var ml    = kapky * s.mlPerDrop;
+      var mlStr = (ml < 0.1) ? fmtCs(ml, 2) : fmtCs(ml, 1);
       output.innerHTML =
         '<div class="big-number-wrap">' +
           '<div class="big-number ph-color">' + kapky + '</div>' +
           '<div class="big-unit">kapek pH-</div>' +
-        '</div>';
+          '<div class="ml-secondary">≈ ' + mlStr + ' ml</div>' +
+        '</div>' + devHtml;
       tip.classList.add('visible');
     } else {
       output.innerHTML =
-        '<div class="status-warn">⚠️ pH je nižší než cíl. Nemáš pH+, doporučení: dolij čerstvou vodu (zvedne pH).</div>';
+        '<div class="status-warn">⚠️ pH je nižší než cíl. Nemáš pH+, doporučení: dolij čerstvou vodu (zvedne pH).</div>' + devHtml;
       tip.classList.remove('visible');
     }
   }
