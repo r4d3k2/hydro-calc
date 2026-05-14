@@ -49,6 +49,11 @@
       margin-top: 1px;
     }
 
+    .header-volume {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
     /* ── Card ── */
     .card {
       background: #fff;
@@ -396,7 +401,7 @@
   <!-- ── Header ── -->
   <header class="header">
     <h1>🌱 Hydro kalkulačka</h1>
-    <p>Věž 15 L · BioNova</p>
+    <p>Věž <span id="headerVolume" class="header-volume">15</span> L · BioNova</p>
   </header>
 
   <!-- ── Section 1: Settings ── -->
@@ -596,6 +601,12 @@
     if (phEl) phEl.textContent = 'Cíl: ' + fmtCs(s.targetPH, 1);
   }
 
+  function updateHeaderVolume() {
+    var el = document.getElementById('headerVolume');
+    if (el) el.textContent = s.volumeL;
+  }
+
+
   /* ── Collapsible sections ── */
   function initToggle(toggleId, bodyId) {
     document.getElementById(toggleId).addEventListener('click', function() {
@@ -624,6 +635,7 @@
     document.getElementById('mlPerDrop').value    = s.mlPerDrop;
 
     updateTargets();
+    updateHeaderVolume();
   }
 
   function highlightPreset(preset) {
@@ -667,7 +679,7 @@
 
   function onVolumeChange() {
     var v = parseFloat(document.getElementById('volumeInput').value);
-    if (!isNaN(v) && v > 0) { s.volumeL = v; save(); recalcAll(); }
+    if (!isNaN(v) && v > 0) { s.volumeL = v; updateHeaderVolume(); save(); recalcAll(); }
   }
 
   function onKoefChange() {
