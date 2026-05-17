@@ -481,7 +481,7 @@
   <!-- ── Header ── -->
   <header class="header">
     <h1>🌱 Hydro kalkulačka</h1>
-    <p>Věž <span id="headerVolume" class="header-volume">15</span> L · BioNova · pH- <span id="headerPhType" class="header-volume">81%</span></p>
+    <p><span id="headerCrop" class="header-volume">🌿 Bylinky</span> · Věž <span id="headerVolume" class="header-volume">15</span> L · pH- <span id="headerPhType" class="header-volume">81%</span></p>
   </header>
 
   <!-- ── Section 1: Settings ── -->
@@ -766,6 +766,17 @@
     if (el) el.textContent = getPhProductLabel();
   }
 
+  function getCropLabel() {
+    if (s.preset === 'salads') return '🥬 Saláty';
+    if (s.preset === 'custom') return '✏️ Vlastní';
+    return '🌿 Bylinky';
+  }
+
+  function updateHeaderCrop() {
+    var el = document.getElementById('headerCrop');
+    if (el) el.textContent = getCropLabel();
+  }
+
   function highlightPhProduct() {
     var origBtn = document.getElementById('phProductOriginal');
     var dilBtn  = document.getElementById('phProductDiluted');
@@ -840,6 +851,7 @@
     updateTargets();
     updateHeaderVolume();
     updateHeaderProduct();
+    updateHeaderCrop();
     updateKoefPHLabels();
     updatePhTable();
   }
@@ -869,6 +881,7 @@
     }
 
     updateTargets();
+    updateHeaderCrop();
     save();
     recalcAll();
   }
