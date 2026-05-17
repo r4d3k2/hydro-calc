@@ -393,6 +393,86 @@
       margin-top: 14px;
       line-height: 1.55;
     }
+
+    .calib-readonly {
+      color: #6a7a6a;
+      font-style: italic;
+    }
+
+    /* ── pH card extras ── */
+    .ph-info-line {
+      font-size: 13px;
+      color: #6a7a6a;
+      margin-top: -4px;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .ph-output-label {
+      font-size: 14px;
+      color: #6a7a6a;
+      margin-top: 14px;
+      margin-bottom: 2px;
+    }
+
+    .ph-output-half {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0277bd;
+      margin: 4px 0;
+      text-align: center;
+    }
+
+    .ph-output-hint {
+      font-size: 13px;
+      color: #6a7a6a;
+      line-height: 1.5;
+      margin-top: 4px;
+    }
+
+    .ph-stop {
+      font-size: 14px;
+      color: #c62828;
+      background: #ffebee;
+      border-radius: 8px;
+      padding: 12px 14px;
+      line-height: 1.5;
+    }
+
+    .ph-finetune-warn,
+    .ph-cap-warn {
+      font-size: 13px;
+      color: #ef6c00;
+      background: #fff8f0;
+      border-left: 3px solid #ef6c00;
+      border-radius: 0 8px 8px 0;
+      padding: 8px 10px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    /* ── pH table ── */
+    .ph-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+    .ph-table th,
+    .ph-table td {
+      padding: 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid #e0e8e0;
+      vertical-align: top;
+    }
+    .ph-table th {
+      font-weight: 600;
+      color: #6a7a6a;
+    }
+    .ph-table td:first-child {
+      font-weight: 600;
+      color: #1f2a1f;
+    }
   </style>
 </head>
 <body>
@@ -401,7 +481,7 @@
   <!-- ── Header ── -->
   <header class="header">
     <h1>🌱 Hydro kalkulačka</h1>
-    <p>Věž <span id="headerVolume" class="header-volume">15</span> L · BioNova</p>
+    <p>Věž <span id="headerVolume" class="header-volume">15</span> L · BioNova · pH- <span id="headerPhType" class="header-volume">81%</span></p>
   </header>
 
   <!-- ── Section 1: Settings ── -->
@@ -434,6 +514,13 @@
         <label class="field-label" for="volumeInput">Objem nádrže (L)</label>
         <input type="number" id="volumeInput" step="1" min="1" max="1000" value="15" oninput="onVolumeChange()">
       </div>
+
+      <span class="section-label">pH- přípravek</span>
+      <div class="preset-group">
+        <button class="preset-btn" id="phProductOriginal" onclick="setPhProductType('original_81pct')">🧪 Originál 81%</button>
+        <button class="preset-btn" id="phProductDiluted"  onclick="setPhProductType('diluted_10pct')">💧 Zředěný 10%</button>
+      </div>
+      <p class="field-hint" style="margin-top:8px">Originál Essentials LAB pH- (81% H₃PO₄) nebo pracovní roztok zředěný 1:9 vodou.</p>
 
     </div>
   </div>
@@ -485,6 +572,7 @@
   <div class="card">
     <div class="card-title">⬇️ Snížit pH</div>
     <div class="card-target" id="phTarget">Cíl: 5,8</div>
+    <div class="ph-info-line">ℹ️ pH škála je logaritmická. Rozdíl 8 → 7 je 10× snazší dosáhnout než 6 → 5.</div>
     <div class="field">
       <label class="field-label" for="measuredPH">Naměřené pH</label>
       <input type="number" id="measuredPH" step="0.1" min="0" max="14" placeholder="např. 7.5" oninput="calcPH()">
@@ -495,6 +583,31 @@
       <div class="tip-box" id="phTip">
         💡 Začni polovinou, počkej 2 minuty, znovu změř. pH reaguje skokově.
       </div>
+    </div>
+  </div>
+
+  <!-- ── Section 4b: Orientační tabulka poklesu pH ── -->
+  <div class="card">
+    <div class="toggle-header" id="phTableToggle">
+      <span class="card-title">📊 Orientační tabulka poklesu pH</span>
+      <span class="toggle-arrow">▼</span>
+    </div>
+    <div class="collapse-body" id="phTableBody">
+      <p class="calib-intro">Pokles pH při různých dávkách pro tvou nádrž (V = <span id="phTableVolume">15</span> L).</p>
+      <table class="ph-table">
+        <thead>
+          <tr><th>Dávka</th><th>Pokles pH</th><th>Použití</th></tr>
+        </thead>
+        <tbody>
+          <tr><td id="phTableA">–</td><td>0,5–1,0</td><td>jemné doladění</td></tr>
+          <tr><td id="phTableB">–</td><td>1,0–1,5</td><td>standardní korekce</td></tr>
+          <tr><td id="phTableC">–</td><td>1,5–2,0</td><td>velká korekce (pH &gt; 7,5)</td></tr>
+        </tbody>
+      </table>
+      <p class="calib-tip">
+        Hodnoty jsou orientační podle výrobce. Skutečný pokles závisí na pufrování tvé vody.
+        Pokud sedí kalibrace v ⚙️ Kalibrace, věř výpočtu z hlavní karty.
+      </p>
     </div>
   </div>
 
@@ -522,9 +635,10 @@
       </div>
 
       <div class="field">
-        <label class="field-label" for="koefPH">pH koeficient</label>
-        <p class="field-hint">O kolik sníží 1 kapka pH- pH v 1 L vody</p>
-        <input type="number" id="koefPH" step="0.05" min="0.01" max="10" value="1.125" oninput="onKoefChange()">
+        <label class="field-label" for="koefPHActive" id="koefPHLabel">pH koeficient (Originál 81%)</label>
+        <p class="field-hint">O kolik sníží 1 kapka aktivního přípravku pH v 1 L vody. Defaultně pro tvrdou českou vodu (~pH 8). Kalibruj v praxi.</p>
+        <input type="number" id="koefPHActive" step="0.01" min="0.001" max="10" value="1.125" oninput="onKoefChange()">
+        <p class="field-hint calib-readonly" id="koefPHOther" style="margin-top:6px">Druhý přípravek (10%): 0,1125. Mění se automaticky při kalibraci hlavního s faktorem 10×.</p>
       </div>
 
       <div class="field">
@@ -547,24 +661,45 @@
 <script>
   const STORAGE_KEY = 'hydroCalc_v1';
   const DEFAULTS = {
-    preset:    'herbs',
-    targetEC:  1.4,
-    targetPH:  5.8,
-    volumeL:   15,
-    koefEC:    0.75,
-    koefPH:    1.125,
-    koefBNZym: 0.5,
-    mlPerDrop: 0.05
+    preset:       'herbs',
+    targetEC:     1.4,
+    targetPH:     5.8,
+    volumeL:      15,
+    koefEC:       0.75,
+    koefBNZym:    0.5,
+    mlPerDrop:    0.05,
+    phMinusType:  'original_81pct',
+    koefPH_81pct: 1.125,
+    koefPH_10pct: 0.1125
   };
 
   let s = loadSettings();
 
   function loadSettings() {
+    var loaded = {};
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return Object.assign({}, DEFAULTS, JSON.parse(raw));
-    } catch (_) {}
-    return Object.assign({}, DEFAULTS);
+      if (raw) loaded = JSON.parse(raw) || {};
+    } catch (_) { loaded = {}; }
+
+    var merged = Object.assign({}, DEFAULTS, loaded);
+
+    /* Migration: legacy koefPH → koefPH_81pct */
+    if (typeof loaded.koefPH === 'number' && typeof loaded.koefPH_81pct !== 'number') {
+      merged.koefPH_81pct = loaded.koefPH;
+    }
+    /* Derive koefPH_10pct if missing */
+    if (typeof merged.koefPH_10pct !== 'number') {
+      merged.koefPH_10pct = merged.koefPH_81pct / 10;
+    }
+    /* Default product type */
+    if (merged.phMinusType !== 'diluted_10pct' && merged.phMinusType !== 'original_81pct') {
+      merged.phMinusType = 'original_81pct';
+    }
+    /* Drop obsolete key so it doesn't get re-saved */
+    delete merged.koefPH;
+
+    return merged;
   }
 
   function save() {
@@ -582,6 +717,26 @@
 
   function fmtCs(v, decimals) {
     return Number(v).toFixed(decimals).replace('.', ',');
+  }
+
+  function fmtCsTrim(v, maxDecimals) {
+    var str = Number(v).toFixed(maxDecimals);
+    if (str.indexOf('.') >= 0) {
+      str = str.replace(/0+$/, '').replace(/\.$/, '');
+    }
+    return str.replace('.', ',');
+  }
+
+  function fmtMl(v) {
+    return (v < 0.1) ? fmtCs(v, 2) : fmtCs(v, 1);
+  }
+
+  function getActiveKoefPH() {
+    return s.phMinusType === 'diluted_10pct' ? s.koefPH_10pct : s.koefPH_81pct;
+  }
+
+  function getPhProductLabel() {
+    return s.phMinusType === 'diluted_10pct' ? '10%' : '81%';
   }
 
   function deviationHtml(diff, unit, tol) {
@@ -606,6 +761,53 @@
     if (el) el.textContent = s.volumeL;
   }
 
+  function updateHeaderProduct() {
+    var el = document.getElementById('headerPhType');
+    if (el) el.textContent = getPhProductLabel();
+  }
+
+  function highlightPhProduct() {
+    var origBtn = document.getElementById('phProductOriginal');
+    var dilBtn  = document.getElementById('phProductDiluted');
+    if (!origBtn || !dilBtn) return;
+    origBtn.classList.toggle('active', s.phMinusType === 'original_81pct');
+    dilBtn.classList.toggle('active',  s.phMinusType === 'diluted_10pct');
+  }
+
+  function updateKoefPHLabels() {
+    var labelEl  = document.getElementById('koefPHLabel');
+    var inputEl  = document.getElementById('koefPHActive');
+    var otherEl  = document.getElementById('koefPHOther');
+    if (!labelEl || !inputEl || !otherEl) return;
+
+    var isDiluted   = s.phMinusType === 'diluted_10pct';
+    var activeLabel = isDiluted ? 'Zředěný 10%' : 'Originál 81%';
+    var otherLabel  = isDiluted ? '81%' : '10%';
+    var activeVal   = isDiluted ? s.koefPH_10pct : s.koefPH_81pct;
+    var otherVal    = isDiluted ? s.koefPH_81pct : s.koefPH_10pct;
+
+    labelEl.textContent = 'pH koeficient (' + activeLabel + ')';
+    inputEl.value       = activeVal;
+    otherEl.textContent =
+      'Druhý přípravek (' + otherLabel + '): ' + fmtCsTrim(otherVal, 5) +
+      '. Mění se automaticky při kalibraci hlavního s faktorem 10×.';
+  }
+
+  function updatePhTable() {
+    var volEl = document.getElementById('phTableVolume');
+    if (volEl) volEl.textContent = s.volumeL;
+
+    var isDiluted = s.phMinusType === 'diluted_10pct';
+    var factors   = isDiluted ? [0.25, 0.5, 0.75] : [0.025, 0.05, 0.075];
+    var ids       = ['phTableA', 'phTableB', 'phTableC'];
+    factors.forEach(function(f, i) {
+      var ml    = f * s.volumeL;
+      var drops = (s.mlPerDrop > 0) ? Math.round(ml / s.mlPerDrop) : 0;
+      var el    = document.getElementById(ids[i]);
+      if (el) el.textContent = drops + ' kapek (' + fmtMl(ml) + ' ml)';
+    });
+  }
+
 
   /* ── Collapsible sections ── */
   function initToggle(toggleId, bodyId) {
@@ -616,6 +818,7 @@
   }
 
   initToggle('settingsToggle', 'settingsBody');
+  initToggle('phTableToggle',  'phTableBody');
   initToggle('calibToggle',    'calibBody');
 
   /* ── Settings initialisation ── */
@@ -631,11 +834,14 @@
     document.getElementById('volumeInput').value  = s.volumeL;
     document.getElementById('koefEC').value       = s.koefEC;
     document.getElementById('koefBNZym').value    = s.koefBNZym;
-    document.getElementById('koefPH').value       = s.koefPH;
     document.getElementById('mlPerDrop').value    = s.mlPerDrop;
 
+    highlightPhProduct();
     updateTargets();
     updateHeaderVolume();
+    updateHeaderProduct();
+    updateKoefPHLabels();
+    updatePhTable();
   }
 
   function highlightPreset(preset) {
@@ -667,6 +873,17 @@
     recalcAll();
   }
 
+  function setPhProductType(type) {
+    if (type !== 'original_81pct' && type !== 'diluted_10pct') return;
+    s.phMinusType = type;
+    highlightPhProduct();
+    updateHeaderProduct();
+    updateKoefPHLabels();
+    updatePhTable();
+    save();
+    recalcAll();
+  }
+
   function onCustomChange() {
     var ec = parseFloat(document.getElementById('customEC').value);
     var ph = parseFloat(document.getElementById('customPH').value);
@@ -679,31 +896,49 @@
 
   function onVolumeChange() {
     var v = parseFloat(document.getElementById('volumeInput').value);
-    if (!isNaN(v) && v > 0) { s.volumeL = v; updateHeaderVolume(); save(); recalcAll(); }
+    if (!isNaN(v) && v > 0) {
+      s.volumeL = v;
+      updateHeaderVolume();
+      updatePhTable();
+      save();
+      recalcAll();
+    }
   }
 
   function onKoefChange() {
     var ec  = parseFloat(document.getElementById('koefEC').value);
     var zym = parseFloat(document.getElementById('koefBNZym').value);
-    var ph  = parseFloat(document.getElementById('koefPH').value);
+    var ph  = parseFloat(document.getElementById('koefPHActive').value);
     var mpd = parseFloat(document.getElementById('mlPerDrop').value);
     if (!isNaN(ec)  && ec  > 0) s.koefEC    = ec;
     if (!isNaN(zym) && zym > 0) s.koefBNZym = zym;
-    if (!isNaN(ph)  && ph  > 0) s.koefPH    = ph;
     if (!isNaN(mpd) && mpd > 0) s.mlPerDrop = mpd;
+    if (!isNaN(ph)  && ph  > 0) {
+      if (s.phMinusType === 'diluted_10pct') {
+        s.koefPH_10pct = ph;
+        s.koefPH_81pct = ph * 10;
+      } else {
+        s.koefPH_81pct = ph;
+        s.koefPH_10pct = ph / 10;
+      }
+      updateKoefPHLabels();
+    }
+    updatePhTable();
     save();
     recalcAll();
   }
 
   function resetDefaults() {
-    s.koefEC    = DEFAULTS.koefEC;
-    s.koefBNZym = DEFAULTS.koefBNZym;
-    s.koefPH    = DEFAULTS.koefPH;
-    s.mlPerDrop = DEFAULTS.mlPerDrop;
+    s.koefEC       = DEFAULTS.koefEC;
+    s.koefBNZym    = DEFAULTS.koefBNZym;
+    s.koefPH_81pct = DEFAULTS.koefPH_81pct;
+    s.koefPH_10pct = DEFAULTS.koefPH_10pct;
+    s.mlPerDrop    = DEFAULTS.mlPerDrop;
     document.getElementById('koefEC').value    = s.koefEC;
     document.getElementById('koefBNZym').value = s.koefBNZym;
-    document.getElementById('koefPH').value    = s.koefPH;
     document.getElementById('mlPerDrop').value = s.mlPerDrop;
+    updateKoefPHLabels();
+    updatePhTable();
     save();
     recalcAll();
   }
@@ -763,6 +998,8 @@
     var output = document.getElementById('phOutput');
     var tip    = document.getElementById('phTip');
 
+    tip.classList.remove('visible'); /* tip is superseded by inline hints */
+
     if (raw === '') { result.style.display = 'none'; return; }
 
     var measured = parseFloat(raw);
@@ -770,27 +1007,72 @@
 
     result.style.display = 'block';
     var diff    = measured - s.targetPH;
+    var koefPH  = getActiveKoefPH();
     var devHtml = deviationHtml(diff, '', 0.1);
 
-    if (Math.abs(diff) <= 0.1) {
-      output.innerHTML = '<div class="status-ok">✅ pH je v pořádku</div>' + devHtml;
-      tip.classList.remove('visible');
-    } else if (diff > 0) {
-      var kapky = Math.round(diff * s.volumeL / s.koefPH);
-      var ml    = kapky * s.mlPerDrop;
-      var mlStr = (ml < 0.1) ? fmtCs(ml, 2) : fmtCs(ml, 1);
+    /* Case A — pH below safe minimum */
+    if (measured < 5.5) {
       output.innerHTML =
-        '<div class="big-number-wrap">' +
-          '<div class="big-number ph-color">' + kapky + '</div>' +
-          '<div class="big-unit">kapek pH-</div>' +
-          '<div class="ml-secondary">≈ ' + mlStr + ' ml</div>' +
-        '</div>' + devHtml;
-      tip.classList.add('visible');
-    } else {
-      output.innerHTML =
-        '<div class="status-warn">⚠️ pH je nižší než cíl. Nemáš pH+, doporučení: dolij čerstvou vodu (zvedne pH).</div>' + devHtml;
-      tip.classList.remove('visible');
+        '<div class="ph-stop">' +
+          '🛑 <strong>STOP — pH je už nízko!</strong><br>' +
+          'Naměřené pH = ' + fmtCs(measured, 1) + ' je pod bezpečným minimem 5,5. ' +
+          'Nepřidávej pH-. Dolij čerstvou vodu nebo počkej.' +
+        '</div>';
+      return;
     }
+
+    /* Case B — at target */
+    if (Math.abs(diff) <= 0.1) {
+      output.innerHTML = '<div class="status-ok">✅ pH je v cíli (odchylka 0,0)</div>';
+      return;
+    }
+
+    /* Case C — below target */
+    if (diff < -0.1) {
+      output.innerHTML =
+        '<div class="status-warn">⚠️ pH je nižší než cíl. Dolij čerstvou vodu (zvedne pH) nebo použij pH+ (nemáš).</div>' +
+        devHtml;
+      return;
+    }
+
+    /* Case D — above target, normal correction */
+    var dropsTotal = Math.round(diff * s.volumeL / koefPH);
+    var mlTotal    = dropsTotal * s.mlPerDrop;
+    var dropsHalf  = Math.round(dropsTotal / 2);
+    var mlHalf     = dropsHalf * s.mlPerDrop;
+
+    var fineTuneHtml = '';
+    if (measured < 6.5) {
+      fineTuneHtml =
+        '<div class="ph-finetune-warn">' +
+          '⚠️ <strong>Jemné doladění</strong> — pod pH 6,5 přidávej opatrně, ' +
+          'max 2–3 kapky na dávku. pH je v této oblasti citlivější.' +
+        '</div>';
+    }
+
+    var capThreshold = s.phMinusType === 'diluted_10pct' ? 0.75 : 0.075;
+    var capHtml = '';
+    if (s.volumeL > 0 && (mlTotal / s.volumeL) > capThreshold) {
+      capHtml =
+        '<div class="ph-cap-warn">' +
+          '⚠️ Vypočtená dávka přesahuje doporučené maximum (0,75 ml/10 L originálu). ' +
+          'Zkontroluj cílové pH nebo kalibraci. Nikdy nepřidávej víc najednou.' +
+        '</div>';
+    }
+
+    output.innerHTML =
+      devHtml +
+      '<div class="ph-output-label">Celkem potřebuješ:</div>' +
+      '<div class="big-number-wrap">' +
+        '<div class="big-number ph-color">' + dropsTotal + '</div>' +
+        '<div class="big-unit">kapek pH-</div>' +
+        '<div class="ml-secondary">≈ ' + fmtMl(mlTotal) + ' ml</div>' +
+      '</div>' +
+      '<div class="ph-output-label">📌 Začni polovinou:</div>' +
+      '<div class="ph-output-half">' + dropsHalf + ' kapek (' + fmtMl(mlHalf) + ' ml)</div>' +
+      '<div class="ph-output-hint">Po 2 minutách znovu změř, dolaď zbytek po malých dávkách.</div>' +
+      fineTuneHtml +
+      capHtml;
   }
 
   function recalcAll() {
